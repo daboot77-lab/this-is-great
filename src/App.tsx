@@ -208,9 +208,6 @@ export default function App() {
       } else if (currentStep === "chilseok") {
         pitch = 0.68;  // Earnest deep baritone voice
         rate = 0.85;   // Earnest rate
-      } else if (currentStep === "complete") {
-        pitch = 0.72;  // 엄숙하고 감동적인 속삭임
-        rate = 0.78;   // 느리고 장엄한 속도
       }
       // Always assign maleVoice or baseVoice so pitch changes are applied to a Korean voice
       queue.push({ text: gyeonwoo, pitch, rate, voice: maleVoice || baseVoice, speaker: "gyeonwoo" });
@@ -226,9 +223,6 @@ export default function App() {
       } else if (currentStep === "chilseok") {
         pitch = 1.40;  // High-pitched pleading female voice
         rate = 0.95;   // Frantic earnest rate
-      } else if (currentStep === "complete") {
-        pitch = 1.38;  // 부드럽고 감동적인 속삭임
-        rate = 0.82;   // 느리고 엄숙한 속도
       }
       queue.push({ text: jignyeo, pitch, rate, voice: femaleVoice || baseVoice, speaker: "jignyeo" });
     }
@@ -571,34 +565,22 @@ export default function App() {
                     {/* Bridge arch line */}
                     <div className="absolute left-[38%] right-[38%] bottom-[64.5%] h-0.5 border-b border-dashed border-yellow-400/35"></div>
                     
-                    {/* Animated Birds — 용수철처럼 지상에서 솟구쳐 날개를 엮어 오작교 완성 */}
+                    {/* Animated Birds forming the physical bridge - Flying up dynamically with Spring Physics */}
                     {[
-                      { id: 1,  left: "36%",   bottom: "65.5%", delay: 0.04, emoji: "🐦‍⬛" },
-                      { id: 2,  left: "38.5%", bottom: "65.0%", delay: 0.09, emoji: "🐦" },
-                      { id: 3,  left: "41%",   bottom: "64.5%", delay: 0.14, emoji: "🐦‍⬛" },
-                      { id: 4,  left: "43.5%", bottom: "64.0%", delay: 0.19, emoji: "🐦" },
-                      { id: 5,  left: "46%",   bottom: "63.6%", delay: 0.24, emoji: "🐦‍⬛" },
-                      { id: 6,  left: "48.5%", bottom: "63.3%", delay: 0.29, emoji: "🐦" },
-                      { id: 7,  left: "51%",   bottom: "63.3%", delay: 0.34, emoji: "🐦‍⬛" },
-                      { id: 8,  left: "53.5%", bottom: "63.6%", delay: 0.39, emoji: "🐦" },
-                      { id: 9,  left: "56%",   bottom: "64.0%", delay: 0.44, emoji: "🐦‍⬛" },
-                      { id: 10, left: "58.5%", bottom: "64.5%", delay: 0.49, emoji: "🐦" },
-                      { id: 11, left: "61%",   bottom: "65.0%", delay: 0.54, emoji: "🐦‍⬛" },
-                      { id: 12, left: "63.5%", bottom: "65.5%", delay: 0.59, emoji: "🐦" },
-                      { id: 13, left: "39%",   bottom: "66.5%", delay: 0.11, emoji: "🐦" },
-                      { id: 14, left: "44%",   bottom: "66.0%", delay: 0.21, emoji: "🐦‍⬛" },
-                      { id: 15, left: "49.5%", bottom: "65.8%", delay: 0.31, emoji: "🐦" },
-                      { id: 16, left: "55%",   bottom: "66.0%", delay: 0.41, emoji: "🐦‍⬛" },
-                      { id: 17, left: "60%",   bottom: "66.5%", delay: 0.51, emoji: "🐦" },
+                      { id: 1, left: "43%", bottom: "63.5%", delay: 0.1, emoji: "🐦‍⬛" },
+                      { id: 2, left: "46.5%", bottom: "63.0%", delay: 0.25, emoji: "🐦" },
+                      { id: 3, left: "50%", bottom: "62.5%", delay: 0.4, emoji: "🐦‍⬛" },
+                      { id: 4, left: "53.5%", bottom: "63.0%", delay: 0.55, emoji: "🐦" },
+                      { id: 5, left: "57%", bottom: "63.5%", delay: 0.7, emoji: "🐦‍⬛" },
                     ].map((bird) => (
                       <motion.div
                         key={bird.id}
                         initial={{ 
-                          y: 400, 
-                          x: (bird.id % 5 - 2) * 8, 
+                          y: 350, 
+                          x: bird.id % 2 === 0 ? -150 : 150, 
                           opacity: 0, 
-                          scale: 0.08,
-                          rotate: bird.id % 2 === 0 ? -28 : 28
+                          scale: 0.2,
+                          rotate: bird.id % 2 === 0 ? -35 : 35
                         }}
                         animate={{ 
                           y: 0, 
@@ -609,17 +591,17 @@ export default function App() {
                         }}
                         transition={{ 
                           type: "spring",
-                          stiffness: 150,
-                          damping: 9,
+                          stiffness: 85,
+                          damping: 12,
                           delay: bird.delay
                         }}
-                        className="absolute text-sm select-none"
+                        className="absolute text-xl select-none"
                         style={{
                           left: bird.left,
                           bottom: bird.bottom,
                         }}
                       >
-                        <span className="inline-block">{bird.emoji}</span>
+                        <span className="inline-block animate-bounce">{bird.emoji}</span>
                       </motion.div>
                     ))}
                   </div>
@@ -628,7 +610,7 @@ export default function App() {
                 {/* 2-4. Altair (견우성) - Slowly closes in synchronized with Earth's orbit change */}
                 <div 
                   className={`absolute text-center z-20 ${
-                    (step === "bridge" || step === "wish" || step === "complete" || step === "chilseok") ? "animate-walk" : ""
+                    (step === "bridge" || step === "wish" || step === "complete") ? "animate-walk" : ""
                   }`}
                   style={{
                     left: coords.altair.left,
@@ -673,7 +655,7 @@ export default function App() {
                 {/* 2-5. Vega (직녀성) - Slowly closes in synchronized with Earth's orbit change */}
                 <div 
                   className={`absolute text-center z-20 ${
-                    (step === "bridge" || step === "wish" || step === "complete" || step === "chilseok") ? "animate-walk" : ""
+                    (step === "bridge" || step === "wish" || step === "complete") ? "animate-walk" : ""
                   }`}
                   style={{
                     right: coords.vega.right,
@@ -854,7 +836,7 @@ export default function App() {
               </div>
 
               {/* Characters Dialogues on relevant steps */}
-              {step !== "ready" && (
+              {step !== "ready" && step !== "complete" && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4 pt-4 border-t border-white/5 animate-fade-in">
                   <div className="bg-blue-950/20 border border-blue-900/30 p-3 rounded-lg flex gap-2.5 items-start">
                     <span className="text-2xl mt-0.5 select-none">🧔</span>
@@ -1193,7 +1175,7 @@ function getSkyGradient(step: Step): string {
     case "ready":
       return "linear-gradient(180deg, #020208 0%, #06061c 100%)";
     case "spring_autumn":
-      return "linear-gradient(180deg, #0a0118 0%, #1e0840 45%, #0d0820 100%)";
+      return "linear-gradient(180deg, #010106 0%, #0c0512 100%)";
     case "chilseok":
       return "linear-gradient(180deg, #050215 0%, #170d3e 100%)";
     case "bridge":
@@ -1209,17 +1191,17 @@ function getSkyGradient(step: Step): string {
 function getNarrationText(step: Step): string {
   switch (step) {
     case "ready":
-      return "하늘나라 은하수 동쪽에서 부지런히 소를 몰던 늠름한 목동 견우와, 서쪽에서 밤낮없이 아름다운 비단을 짜던 옥황상제의 딸 단아한 직녀가 살고 있었습니다. 두 사람은 각자의 업에 충실하며 은하수 양쪽에서 평화롭게 살아가고 있었습니다.";
+      return "하늘나라 은하수 동쪽에서 부지런히 소를 몰던 늠름한 목동 견우와, 서쪽에서 밤낮없이 아름다운 비단을 짜던 목수이자 공주인 단아한 직녀가 살고 있었습니다.";
     case "spring_autumn":
-      return "서로 깊은 사랑에 빠져 본분을 잊자 크게 노한 옥황상제는 두 사람을 은하수 너머로 추방하였습니다. 봄과 가을, 시리도록 아련하고 어두운 보랏빛 하늘 아래 두 사람은 드넓은 은하수를 사이에 두고 깊은 고독 속에서 홀로 눈물을 흘리며 슬픔을 교환할 뿐이었습니다.";
+      return "서로 깊은 사랑에 빠져 본분을 잊자 크게 노한 옥황상제는 두 사람을 은하수 너머로 추방하고 일 년에 단 한 번, 칠월칠석에만 만날 수 있게 하였습니다. 봄과 가을에는 드넓은 은하수를 사이에 두고 하염없이 서로를 향해 눈물지을 뿐이었습니다.";
     case "chilseok":
       return "기다리던 칠석날 밤, 지구(관찰자)가 중천 정중앙으로 완전히 이동하며 두 연인은 천구 돔의 꼭대기에서 마침내 서로를 눈앞에 마주했습니다. 그러나 여전히 거센 은하수 줄기가 가로막아 강가에서 발만 동동 구르며 눈물이 고인 애타는 탄식을 나눌 뿐입니다. (오작교는 아직 형성되지 않았습니다.)";
     case "bridge":
-      return "이 애처로운 슬픔을 차마 보지 못한 지상의 수많은 까마귀와 까치들이 용수철처럼 힘차게 솟구쳐 올라 날개를 엮어 오작교를 완성하였습니다! 두 연인은 은하수 정중앙(46.5%)까지 마주 달려와 완벽하게 겹쳐지며, 밝게 미소 짓는 행복한 얼굴로 굳게 끌어안는 벅찬 재회의 극적인 하이라이트를 연출합니다.";
+      return "이 애처로운 슬픔을 차마 보지 못한 지상의 수많은 까마귀와 까치들이 일제히 날아올라 은하수 위를 덮고 자신들의 날개를 엮어 아름다운 다리 '오작교'를 놓아주었습니다. 마침내 두 사람은 은하수 한가운데에서 서로를 굳게 얼싸안으며 눈물의 재회를 나눕니다.";
     case "wish":
       return "꿈결 같은 상봉의 감격을 이룬 견우와 직녀는 이 고결한 사랑과 화합의 축복을 지상의 선한 관찰자분들에게 전하고자 까마귀 편에 기적의 황금 봉투를 딸려 보냈습니다. 이제 은하수 밤하늘에 새겨 넣을 당신의 진실한 소망을 적어 올릴 시간입니다.";
     case "complete":
-      return "소원이 황금빛 성좌가 되어 은하수 중앙에 찬란하게 고정되었습니다! 견우와 직녀가 그대의 고결한 마음을 끝까지 수호해 줄 것을 엄숙하고 감동적으로 속삭이며 이야기를 마칩니다. 은하수의 무한한 별빛처럼, 그대의 소원이 영원히 꺼지지 않고 타오를 것입니다.";
+      return "축하합니다! 당신의 고결하고 따뜻한 마음이 가득 담긴 소원이 하늘 저 높이 날아가 은하수 속에서 꺼지지 않고 불타오르는 찬란한 소원 별자리 성좌로 눈부시게 등극하였습니다. 두 연인의 사랑의 수호가 여러분의 염원을 영원히 보살펴 줄 것입니다.";
     default:
       return "";
   }
@@ -1233,10 +1215,6 @@ function getGyeonwooDialogue(step: Step): string {
       return "오! 드디어 칠월칠석의 은하수 정수리 끝에서 그대의 단아한 모습이 눈이 시리도록 가깝게 빛나고 있소! 하지만 이 거센 은하수의 은빛 물결을 건널 길이 없으니 이 어찌 애타는 비극이란 말이오! 직녀여, 손을 뻗어 보시오!";
     case "bridge":
       return "아! 마침내 수많은 까마귀와 까치들이 날개를 펴 다리를 놓아주었구려! 나의 직녀여, 그대의 고운 손을 꼭 부여잡으니 일 년 동안 쌓인 서러운 고독이 눈 녹듯 사라지오! 우리의 사랑은 은하수보다 깊소!";
-    case "wish":
-      return "이 기적의 황금 봉투가 마침내 지상에 닿았구려. 당신의 고결한 소원을 정성껏 적어 우리에게 보내주시오. 그 열망을 은하수 별빛으로 영원히 새겨드리겠소!";
-    case "complete":
-      return "그대의 진심 어린 소원이 은하수에 찬란한 성좌로 새겨졌습니다. 직녀와 나 견우가 함께 그 빛을 끝까지 지켜내어, 그대의 염원이 반드시 이루어지도록 엄숙히 수호하겠노라!";
     default:
       return "";
   }
@@ -1250,10 +1228,6 @@ function getJignyeoDialogue(step: Step): string {
       return "오늘이 바로 고대하던 칠석날이거늘, 하늘 한가운데에서 눈앞에 선명히 반짝이는 견우님을 마주하고도 굽이치는 은하수 강물에 막혀 발만 동동 구르고 있습니다. 가로막힌 이 물줄기가 이토록 잔인할 수 있단 말입니까!";
     case "bridge":
       return "견우님! 오작교 다리가 마침내 놓여 품에 안기게 되었습니다! 견우님의 가슴 벅찬 온기가 고스란히 전해져와 천 년 같은 눈물이 멈추지 않습니다. 이 찬란하고 애틋한 기적의 인연을 우리를 지켜봐 주시는 관찰자님께 축복으로 바치옵니다.";
-    case "wish":
-      return "하늘에서 내려온 황금빛 봉투에 당신의 가장 진실한 소망을 담아 주세요. 저 직녀가 칠석 별빛을 모아 그 소원을 은하수 깊이 새겨 영원히 간직하겠습니다.";
-    case "complete":
-      return "소원 별이 은하수 한가운데에 곱게 안착하여 영원히 빛나고 있습니다. 견우님과 저 직녀가 함께 그대의 고결한 마음을 끝까지 지켜드리겠다고 감동적으로 속삭입니다... 그대의 꿈은 반드시 이루어질 것입니다.";
     default:
       return "";
   }
