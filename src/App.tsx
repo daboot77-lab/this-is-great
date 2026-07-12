@@ -158,6 +158,24 @@ export default function App() {
     }
   }, []);
 
+  // UnicornStudio 라이브러리 동적 로딩 (컴포넌트 마운트 후 div가 DOM에 존재하는 시점에 init)
+  useEffect(() => {
+    const existing = document.querySelector(
+      'script[src*="unicornStudio.umd.js"]'
+    );
+    if (existing) {
+      (window as any).UnicornStudio?.init();
+      return;
+    }
+    const script = document.createElement("script");
+    script.src =
+      "https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@v2.2.6/dist/unicornStudio.umd.js";
+    script.onload = () => {
+      (window as any).UnicornStudio?.init();
+    };
+    (document.head || document.body).appendChild(script);
+  }, []);
+
   // 2. Persist state changes in sessionStorage
   useEffect(() => {
     sessionStorage.setItem("gyeonwoo_step", step);
@@ -661,6 +679,11 @@ export default function App() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* UnicornStudio 임베드 — 원본 1440×900 치수 유지, 가로 넘침 숨김 처리 */}
+      <div className="w-full overflow-x-hidden flex justify-center">
+        <div style={{ width: "1440px", height: "900px" }} data-us-project="ypw8xfYlZ7064WHQNDJn" />
+      </div>
 
       <main className="max-w-4xl mx-auto px-4 mt-6">
         {activeTab === "simulator" ? (
