@@ -1,0 +1,8 @@
+{
+  "name": "견우와 직녀 은하수 시뮬레이터",
+  "description": "견우성과 직녀성의 천문학적 위치 변화, 천공 평평화 착시, 설화 속 오작교와 소원 별을 구현한 인터랙티브 시뮬레이터 및 Streamlit MVP 코드 제공 앱입니다.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
