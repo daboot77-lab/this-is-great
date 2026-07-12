@@ -19,12 +19,32 @@ import {
   Earth,
   Heart,
   HelpCircle,
-  Clock
+  Clock,
+  Settings,
+  Eye,
+  EyeOff,
+  Key,
+  Loader2
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import { GoogleGenAI } from "@google/genai";
 import { streamlitCodeString } from "./codeString";
 import GyeonwooCharacter from "./components/GyeonwooCharacter";
 import JignyeoCharacter from "./components/JignyeoCharacter";
+
+const STORAGE_KEY = "gyeonwoo_gemini_key";
+
+async function generateWishBlessing(apiKey: string, name: string, wishContent: string): Promise<string> {
+  const ai = new GoogleGenAI({ apiKey });
+  const prompt = `당신은 하늘나라의 견우와 직녀입니다. 지상에서 ${name}이라는 분이 "「${wishContent}」"라는 소원을 은하수로 보내왔습니다.
+견우와 직녀의 목소리로, 따뜻하고 시적인 한국어 축복 메시지를 2~3문장으로 짧게 작성해주세요.
+형식: "견우: [견우의 말] / 직녀: [직녀의 말]" 형식으로 작성하되, 내용은 자연스럽고 감동적으로 써주세요.`;
+  const response = await ai.models.generateContent({
+    model: "gemini-2.0-flash",
+    contents: prompt,
+  });
+  return response.text ?? "";
+}
 
 // Define the steps of our state machine
 type Step = "ready" | "spring_autumn" | "chilseok" | "bridge" | "wish" | "complete";
@@ -58,6 +78,15 @@ export default function App() {
   const [copied, setCopied] = useState(false);
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [isSpinning, setIsSpinning] = useState(false);
+
+  // API Key settings state
+  const [apiKey, setApiKey] = useState<string>(() => localStorage.getItem(STORAGE_KEY) ?? "");
+  const [showApiSettings, setShowApiSettings] = useState(false);
+  const [apiKeyInput, setApiKeyInput] = useState("");
+  const [showApiKeyText, setShowApiKeyText] = useState(false);
+  const [rememberKey, setRememberKey] = useState<boolean>(() => !!localStorage.getItem(STORAGE_KEY));
+  const [aiWishResponse, setAiWishResponse] = useState<string | null>(null);
+  const [isGeneratingResponse, setIsGeneratingResponse] = useState(false);
 
   // States to track active voice narration & dialog bubbles
   const [currentSpeaker, setCurrentSpeaker] = useState<"narrator" | "gyeonwoo" | "jignyeo" | null>(null);
@@ -310,11 +339,12 @@ export default function App() {
     setWishInput("");
     setSelectedWish(null);
     setErrorMessage(null);
+    setAiWishResponse(null);
     speakKorean("지구에서 다시 한 번 하늘을 관측해 보세요.");
   };
 
   // Handle wish submission
-  const handleSubmitWish = (e: React.FormEvent) => {
+  const handleSubmitWish = async (e: React.FormEvent) => {
     e.preventDefault();
     const strippedName = nameInput.trim();
     const strippedWish = wishInput.trim();
@@ -343,7 +373,21 @@ export default function App() {
     setNameInput("");
     setWishInput("");
     setErrorMessage(null);
+    setAiWishResponse(null);
     setStep("complete");
+
+    // Gemini AI 축복 메시지 생성
+    if (apiKey) {
+      setIsGeneratingResponse(true);
+      try {
+        const blessing = await generateWishBlessing(apiKey, strippedName, strippedWish);
+        setAiWishResponse(blessing);
+      } catch {
+        setAiWishResponse(null);
+      } finally {
+        setIsGeneratingResponse(false);
+      }
+    }
   };
 
   // Re-play current narration
@@ -460,9 +504,6 @@ export default function App() {
             <span className="font-display font-bold text-lg tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 via-white to-sky-300">
               견우와 직녀 은하수 시뮬레이터
             </span>
-            <span className="text-[10px] bg-purple-900/50 border border-purple-500/30 px-2 py-0.5 rounded-full text-purple-300">
-              Streamlit MVP
-            </span>
           </div>
 
           <div className="flex items-center gap-2">
@@ -486,6 +527,24 @@ export default function App() {
             >
               <Volume2 className={`w-3.5 h-3.5 ${audioEnabled ? "animate-bounce" : ""}`} />
               {audioEnabled ? "나레이션 ON" : "음성 OFF"}
+            </button>
+
+            {/* API Key Settings Button */}
+            <button
+              onClick={() => {
+                setApiKeyInput(apiKey);
+                setShowApiSettings(v => !v);
+              }}
+              className={`p-2 rounded-lg border text-xs flex items-center gap-1.5 transition-all ${
+                apiKey
+                  ? "bg-emerald-950/40 border-emerald-500/50 text-emerald-300"
+                  : "bg-white/5 border-white/10 text-gray-400"
+              }`}
+              title="Gemini API 키 설정"
+              id="api_settings_btn"
+            >
+              <Key className="w-3.5 h-3.5" />
+              {apiKey ? "AI 연결됨" : "API 키"}
             </button>
 
             {/* Main Tabs */}
@@ -517,6 +576,91 @@ export default function App() {
           </div>
         </div>
       </header>
+
+      {/* API Key Settings Panel */}
+      <AnimatePresence>
+        {showApiSettings && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.18 }}
+            className="sticky top-[61px] z-20 bg-[#07071a]/95 backdrop-blur-md border-b border-white/10 px-4 py-4"
+          >
+            <div className="max-w-4xl mx-auto">
+              <div className="flex items-start gap-3">
+                <Key className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" />
+                <div className="flex-1">
+                  <p className="text-xs font-semibold text-emerald-300 mb-1">Gemini API 키 설정</p>
+                  <p className="text-[11px] text-gray-400 mb-3">
+                    API 키를 입력하면 소원 제출 시 견우와 직녀의 AI 축복 메시지를 받을 수 있습니다.{" "}
+                    <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" className="text-sky-400 underline hover:text-sky-300">
+                      키 발급 →
+                    </a>
+                  </p>
+                  <div className="flex gap-2 items-center">
+                    <div className="relative flex-1 max-w-sm">
+                      <input
+                        type={showApiKeyText ? "text" : "password"}
+                        value={apiKeyInput}
+                        onChange={e => setApiKeyInput(e.target.value)}
+                        placeholder="AIzaSy..."
+                        className="w-full bg-black/40 border border-white/15 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-600 focus:outline-none focus:border-emerald-500 pr-9 font-mono"
+                        id="api_key_input"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowApiKeyText(v => !v)}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
+                      >
+                        {showApiKeyText ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                    <label className="flex items-center gap-1.5 text-xs text-gray-300 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={rememberKey}
+                        onChange={e => setRememberKey(e.target.checked)}
+                        className="accent-emerald-500"
+                      />
+                      기억하기
+                    </label>
+                    <button
+                      onClick={() => {
+                        const trimmed = apiKeyInput.trim();
+                        setApiKey(trimmed);
+                        if (rememberKey && trimmed) {
+                          localStorage.setItem(STORAGE_KEY, trimmed);
+                        } else {
+                          localStorage.removeItem(STORAGE_KEY);
+                        }
+                        setShowApiSettings(false);
+                      }}
+                      className="px-4 py-2 bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-semibold rounded-lg transition-all"
+                    >
+                      저장
+                    </button>
+                    {apiKey && (
+                      <button
+                        onClick={() => {
+                          setApiKey("");
+                          setApiKeyInput("");
+                          localStorage.removeItem(STORAGE_KEY);
+                          setShowApiSettings(false);
+                        }}
+                        className="px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-gray-400 text-xs rounded-lg transition-all"
+                      >
+                        삭제
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <button onClick={() => setShowApiSettings(false)} className="text-gray-500 hover:text-white text-xs mt-0.5">✕</button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <main className="max-w-4xl mx-auto px-4 mt-6">
         {activeTab === "simulator" ? (
@@ -992,6 +1136,34 @@ export default function App() {
                         </span>
                         <p className="text-xs text-gray-300 italic bg-black/25 p-2 rounded border border-white/5 font-sans leading-relaxed">
                           「 {wishes[wishes.length - 1].content} 」
+                        </p>
+                      </div>
+                    )}
+
+                    {/* AI 축복 메시지 */}
+                    {isGeneratingResponse && (
+                      <div className="bg-purple-950/20 border border-purple-500/20 p-4 rounded-xl flex items-center gap-3">
+                        <Loader2 className="w-4 h-4 text-purple-400 animate-spin shrink-0" />
+                        <span className="text-xs text-purple-300">견우와 직녀가 축복 메시지를 전하고 있습니다...</span>
+                      </div>
+                    )}
+                    {aiWishResponse && !isGeneratingResponse && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="bg-gradient-to-br from-purple-950/30 to-indigo-950/30 border border-purple-400/30 p-4 rounded-xl"
+                      >
+                        <div className="flex items-center gap-1.5 text-[10px] font-mono text-purple-300 mb-2">
+                          <Sparkles className="w-3 h-3" />
+                          <span>견우와 직녀의 AI 축복 메시지</span>
+                        </div>
+                        <p className="text-sm text-gray-100 leading-relaxed whitespace-pre-line">{aiWishResponse}</p>
+                      </motion.div>
+                    )}
+                    {!apiKey && !isGeneratingResponse && (
+                      <div className="bg-white/[0.02] border border-dashed border-white/10 p-3 rounded-xl text-center">
+                        <p className="text-[11px] text-gray-500">
+                          <button onClick={() => { setApiKeyInput(""); setShowApiSettings(true); }} className="text-emerald-400 underline hover:text-emerald-300 cursor-pointer">API 키를 등록</button>하면 견우와 직녀의 AI 축복 메시지를 받을 수 있어요 ✨
                         </p>
                       </div>
                     )}
